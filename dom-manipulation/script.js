@@ -148,13 +148,22 @@ function showMessage(message, type) {
   }, 3000);
 }
 
+/**
+ * Sets up the add quote form functionality.
+ * This function attaches event listeners to the pre-existing form elements in the HTML.
+ */
+function createAddQuoteForm() {
+  addQuoteButton.addEventListener('click', addQuote);
+  messageBox.style.display = 'none'; // Ensure message box is hidden initially
+}
+
 
 // Event Listeners
 newQuoteButton.addEventListener('click', showRandomQuote);
-addQuoteButton.addEventListener('click', addQuote);
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
   renderCategoryButtons(); // Render category buttons on page load
   showRandomQuote(); // Display an initial random quote
+  createAddQuoteForm(); // Set up the add quote form
 });
