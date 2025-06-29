@@ -18,7 +18,7 @@ const exportQuotesButton = document.getElementById('exportQuotesBtn');
 const LOCAL_STORAGE_QUOTES_KEY = 'quotes';
 const LOCAL_STORAGE_LAST_CATEGORY_KEY = 'lastSelectedCategory';
 const SESSION_STORAGE_LAST_VIEWED_QUOTE_KEY = 'lastViewedQuote';
-const SERVER_API_URL = 'https://jsonplaceholder.typicode.com/quotes';
+const SERVER_API_URL = 'https://jsonplaceholder.typicode.com/posts';
 const SYNC_INTERVAL_MS = 60000; // 60 seconds
 
 
