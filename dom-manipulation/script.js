@@ -119,49 +119,54 @@ function addQuote() {
  * @param {string} category - The category to filter by.
  */
 function filterQuotes(category) {
-  currentCategory = category; // Update the current category tracker
-  localStorage.setItem(LOCAL_STORAGE_LAST_CATEGORY_KEY, currentCategory); // Save selected category to local storage
+  currentCategory = category;
+  localStorage.setItem(LOCAL_STORAGE_LAST_CATEGORY_KEY, currentCategory);
 
   if (category === "All") {
     filteredQuotes = [...quotes];
   } else {
-    filteredQuotes = quotes.filter(quote => quote.category === category);
+    filteredQuotes = quotes.filter(q => q.category === category);
   }
 
-  // Set the selected value in the dropdown
-  categoryFilterSelect.value = currentCategory;
-
-  showRandomQuote(); // Display a random quote from the newly filtered list
+  showRandomQuote();
 }
+
 
 /**
  * Populates the category dropdown menu based on the unique categories in the quotes array.
  * Includes an "All Categories" option.
  */
 function populateCategories() {
-  categoryFilterSelect.innerHTML = ''; // Clear existing options
+  categoryFilterSelect.innerHTML = ''; // Clear existing buttons
 
-  // Add "All Categories" option
-  const allOption = document.createElement('option');
-  allOption.value = "All";
-  allOption.textContent = "All Categories";
-  categoryFilterSelect.appendChild(allOption);
+  const categories = ['All', ...new Set(quotes.map(q => q.category))];
 
-  // Get unique categories
-  const categories = [...new Set(quotes.map(quote => quote.category))];
-  categories.sort(); // Sort categories alphabetically
-
-  // Add options for each unique category
   categories.forEach(category => {
-    const option = document.createElement('option');
-    option.value = category;
-    option.textContent = category;
-    categoryFilterSelect.appendChild(option);
-  });
+    const btn = document.createElement('button');
+    btn.textContent = category;
+    btn.className = 'category-button';
+    if (category === currentCategory) btn.classList.add('active');
 
-  // Set the selected option based on currentCategory
-  categoryFilterSelect.value = currentCategory;
+    btn.addEventListener('click', () => {
+      filterQuotes(category);
+      updateCategoryButtonState(category);
+    });
+
+    categoryFilterSelect.appendChild(btn);
+  });
 }
+
+function updateCategoryButtonState(selectedCategory) {
+  const buttons = categoryFilterSelect.querySelectorAll('.category-button');
+  buttons.forEach(button => {
+    if (button.textContent === selectedCategory) {
+      button.classList.add('active');
+    } else {
+      button.classList.remove('active');
+    }
+  });
+}
+
 
 /**
  * Displays a temporary message in the message box.
