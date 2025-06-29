@@ -407,3 +407,30 @@ async function fetchQuotesFromServer() {
     return [];
   }
 }
+
+/**
+ * Pushes all local quotes to the server (e.g. for syncing updates).
+ */
+async function syncQuotes() {
+  if (!Array.isArray(quotes) || quotes.length === 0) {
+    showMessage('No local quotes to sync.', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch(SERVER_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(quotes) // Sync all quotes
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server responded with status ${response.status}`);
+    }
+
+    showMessage('Local quotes synced to server.', 'success');
+  } catch (error) {
+    console.error('Error syncing quotes to server:', error);
+    showMessage('Failed to sync local quotes to server.', 'error');
+  }
+}
