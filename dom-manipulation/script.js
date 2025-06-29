@@ -2,7 +2,7 @@
 let quotes = []; // Initialize as empty, will load from local storage
 
 let filteredQuotes = [...quotes]; // Initially, no filter is applied
-let currentCategory = "All"; // Track the currently active category
+let currentCategory = "All"; // Track the currently active category, will load from local storage
 
 // Get DOM elements
 const quoteDisplay = document.getElementById('quoteDisplay');
@@ -14,18 +14,24 @@ const categoryFilterContainer = document.getElementById('categoryFilter');
 const messageBox = document.getElementById('messageBox');
 const exportQuotesButton = document.getElementById('exportQuotesBtn');
 
+// Local Storage Keys
+const LOCAL_STORAGE_QUOTES_KEY = 'quotes';
+const LOCAL_STORAGE_LAST_CATEGORY_KEY = 'lastSelectedCategory';
+const SESSION_STORAGE_LAST_VIEWED_QUOTE_KEY = 'lastViewedQuote';
+
+
 /**
  * Saves the current quotes array to local storage.
  */
 function saveQuotes() {
-  localStorage.setItem('quotes', JSON.stringify(quotes));
+  localStorage.setItem(LOCAL_STORAGE_QUOTES_KEY, JSON.stringify(quotes));
 }
 
 /**
  * Loads quotes from local storage when the application initializes.
  */
 function loadQuotes() {
-  const storedQuotes = localStorage.getItem('quotes');
+  const storedQuotes = localStorage.getItem(LOCAL_STORAGE_QUOTES_KEY);
   if (storedQuotes) {
     try {
       quotes = JSON.parse(storedQuotes);
@@ -48,7 +54,10 @@ function loadQuotes() {
     ];
     saveQuotes(); // Save default quotes to local storage
   }
-  filterQuotes(currentCategory); // Apply initial filter after loading
+
+  // Load last selected category from local storage
+  const storedCategory = localStorage.getItem(LOCAL_STORAGE_LAST_CATEGORY_KEY);
+  currentCategory = storedCategory || "All"; // Default to "All" if not found
 }
 
 
@@ -63,7 +72,7 @@ function showRandomQuote() {
       <span>Please add more quotes or select 'All' categories.</span>
     `;
     // Clear last viewed quote from session storage if no quotes are displayed
-    sessionStorage.removeItem('lastViewedQuote');
+    sessionStorage.removeItem(SESSION_STORAGE_LAST_VIEWED_QUOTE_KEY);
     return;
   }
 
@@ -75,7 +84,7 @@ function showRandomQuote() {
   `;
 
   // Save the last viewed quote to session storage
-  sessionStorage.setItem('lastViewedQuote', JSON.stringify(quote));
+  sessionStorage.setItem(SESSION_STORAGE_LAST_VIEWED_QUOTE_KEY, JSON.stringify(quote));
 }
 
 /**
@@ -100,7 +109,7 @@ function addQuote() {
 
   // Re-filter and re-render categories to include the new one if it's new
   filterQuotes(currentCategory); // Re-apply current filter
-  renderCategoryButtons();
+  populateCategories(); // Update category buttons
 }
 
 /**
@@ -110,6 +119,7 @@ function addQuote() {
  */
 function filterQuotes(category) {
   currentCategory = category; // Update the current category tracker
+  localStorage.setItem(LOCAL_STORAGE_LAST_CATEGORY_KEY, currentCategory); // Save selected category to local storage
 
   if (category === "All") {
     filteredQuotes = [...quotes];
@@ -130,10 +140,10 @@ function filterQuotes(category) {
 }
 
 /**
- * Renders category buttons based on the unique categories in the quotes array.
- * Includes an "All" button.
+ * Populates category buttons based on the unique categories in the quotes array.
+ * Includes an "All" button. Renamed from renderCategoryButtons.
  */
-function renderCategoryButtons() {
+function populateCategories() {
   categoryFilterContainer.innerHTML = ''; // Clear existing buttons
 
   // Get unique categories
@@ -144,6 +154,7 @@ function renderCategoryButtons() {
   const allButton = document.createElement('button');
   allButton.textContent = "All";
   allButton.classList.add('category-button');
+  // Set active class if "All" is the current category
   if (currentCategory === "All") {
     allButton.classList.add('active');
   }
@@ -155,6 +166,7 @@ function renderCategoryButtons() {
     const button = document.createElement('button');
     button.textContent = category;
     button.classList.add('category-button');
+    // Set active class if this category is the current one
     if (currentCategory === category) {
       button.classList.add('active');
     }
@@ -234,9 +246,9 @@ function importFromJsonFile(event) {
         quotes.push(...importedQuotes); // Add new quotes to existing ones
         saveQuotes(); // Save the combined quotes to local storage
         showMessage('Quotes imported successfully!', 'success');
-        // Re-render categories and show a random quote to reflect changes
+        // Re-populate categories and show a random quote to reflect changes
         filterQuotes(currentCategory);
-        renderCategoryButtons();
+        populateCategories();
       } else {
         showMessage('Invalid JSON format for quotes. Please ensure it\'s an array of objects with "text" and "category" properties.', 'error');
       }
@@ -256,7 +268,7 @@ function importFromJsonFile(event) {
  * Loads the last viewed quote from session storage and displays it.
  */
 function loadLastViewedQuote() {
-  const lastQuote = sessionStorage.getItem('lastViewedQuote');
+  const lastQuote = sessionStorage.getItem(SESSION_STORAGE_LAST_VIEWED_QUOTE_KEY);
   if (lastQuote) {
     try {
       const parsedQuote = JSON.parse(lastQuote);
@@ -280,11 +292,13 @@ exportQuotesButton.addEventListener('click', exportQuotes); // Add event listene
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
-  loadQuotes(); // Load quotes from local storage first
-  renderCategoryButtons(); // Render category buttons based on loaded quotes
-  const lastQuoteLoaded = loadLastViewedQuote(); // Try to load last viewed quote
+  loadQuotes(); // Load quotes and last selected category from local storage
+  populateCategories(); // Populate category buttons based on loaded quotes and active category
+  const lastQuoteLoaded = loadLastViewedQuote(); // Try to load last viewed quote from session storage
   if (!lastQuoteLoaded) {
-    showRandomQuote(); // If no last quote, show a random one
+    // If no last viewed quote in session storage, display a random quote
+    // filtered by the last selected category (which was loaded in loadQuotes)
+    showRandomQuote();
   }
   createAddQuoteForm(); // Set up the add quote form
 });
