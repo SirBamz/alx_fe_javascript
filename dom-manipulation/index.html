@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Quote Generator</title>
+  <!-- Tailwind CSS CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Custom font: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f0f4f8; /* Light blue-gray background */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      color: #334155; /* Dark slate gray text */
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 2.5rem;
+      border-radius: 1rem; /* More rounded corners */
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* Soft shadow */
+      max-width: 90%;
+      width: 600px;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      color: #1e3a8a; /* Darker blue heading */
+      margin-bottom: 2rem;
+      font-size: 2.5rem; /* Larger heading */
+      font-weight: 700; /* Bold */
+    }
+    #quoteDisplay {
+      min-height: 100px; /* Ensure space for quote */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: #475569; /* Medium slate gray */
+      border: 1px solid #e2e8f0; /* Light border */
+      padding: 1.5rem;
+      border-radius: 0.75rem; /* Rounded quote box */
+      background-color: #f8fafc; /* Very light blue-gray for quote box */
+    }
+    #quoteDisplay p {
+      margin: 0;
+      line-height: 1.6;
+    }
+    #quoteDisplay span {
+      display: block;
+      margin-top: 0.75rem;
+      font-size: 1rem;
+      font-style: normal;
+      font-weight: 600;
+      color: #64748b; /* Slightly darker category text */
+    }
+    .button {
+      background-color: #3b82f6; /* Blue button */
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .button:hover {
+      background-color: #2563eb; /* Darker blue on hover */
+      transform: translateY(-2px);
+    }
+    .button:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      width: 100%;
+      max-width: 400px; /* Limit input group width */
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .input-group input {
+      padding: 0.75rem 1rem;
+      border: 1px solid #cbd5e1; /* Light gray border */
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      color: #475569;
+      background-color: #f8fafc;
+    }
+    .input-group input::placeholder {
+      color: #94a3b8; /* Lighter placeholder text */
+    }
+    .category-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      justify-content: center;
+    }
+    .category-button {
+      background-color: #60a5fa; /* Lighter blue for category buttons */
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.3s ease;
+    }
+    .category-button:hover {
+      background-color: #3b82f6;
+    }
+    .category-button.active {
+      background-color: #1d4ed8; /* Even darker blue for active category */
+      font-weight: 600;
+    }
+    .message-box {
+      background-color: #d1fae5; /* Light green for success */
+      color: #065f46; /* Dark green text */
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      border: 1px solid #34d399; /* Green border */
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      #quoteDisplay {
+        font-size: 1.25rem;
+        padding: 1rem;
+      }
+      .button {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+      }
+      .input-group {
+        gap: 0.75rem;
+      }
+      .input-group input {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+      }
+      .category-buttons {
+        gap: 0.5rem;
+      }
+      .category-button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Dynamic Quote Generator</h1>
+    <div id="quoteDisplay">
+      <p>Click "Show New Quote" to get started!</p>
+      <span></span>
+    </div>
+
+    <button id="newQuote" class="button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rotate-cw"><path d="M21 12a9 9 0 1 1-9-9c2.75 0 4.083 1.042 4.875 2.084M21 3v9h-9"/></svg>
+      Show New Quote
+    </button>
+
+    <div id="categoryFilter" class="category-buttons">
+      <!-- Category buttons will be dynamically loaded here -->
+    </div>
+
+    <div class="input-group">
+      <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
+      <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
+      <button id="addQuoteBtn" class="button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-circle"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+        Add Quote
+      </button>
+      <div id="messageBox"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
