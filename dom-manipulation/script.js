@@ -304,43 +304,33 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function syncWithServer() {
-  try {
-    const response = await fetch(SERVER_API_URL);
-    const serverQuotes = await response.json();
+  const serverQuotes = await fetchQuotesFromServer();
+  if (serverQuotes.length === 0) return;
 
-    if (!Array.isArray(serverQuotes)) throw new Error('Invalid server data');
+  let updated = false;
 
-    let updated = false;
+  const localMap = new Map(quotes.map(q => [q.text + q.category, q]));
+  const serverMap = new Map(serverQuotes.map(q => [q.text + q.category, q]));
 
-    // Build maps for easy comparison
-    const localMap = new Map(quotes.map(q => [q.text + q.category, q]));
-    const serverMap = new Map(serverQuotes.map(q => [q.text + q.category, q]));
-
-    // Conflict resolution: server wins
-    serverMap.forEach((serverQuote, key) => {
-      const localQuote = localMap.get(key);
-      if (!localQuote || new Date(serverQuote.updatedAt) > new Date(localQuote.updatedAt || 0)) {
-        localMap.set(key, {
-          text: serverQuote.text,
-          category: serverQuote.category,
-          updatedAt: serverQuote.updatedAt
-        });
-        updated = true;
-      }
-    });
-
-    // Rebuild quotes array and save
-    quotes = Array.from(localMap.values());
-    saveQuotes();
-
-    if (updated) {
-      showMessage('Quotes synced from server.', 'success');
-      populateCategories();
-      filterQuotes(currentCategory);
+  serverMap.forEach((serverQuote, key) => {
+    const localQuote = localMap.get(key);
+    if (!localQuote || new Date(serverQuote.updatedAt) > new Date(localQuote.updatedAt || 0)) {
+      localMap.set(key, {
+        text: serverQuote.text,
+        category: serverQuote.category,
+        updatedAt: serverQuote.updatedAt
+      });
+      updated = true;
     }
-  } catch (error) {
-    console.error('Failed to sync with server:', error);
-    showMessage('Sync error: ' + error.message, 'error');
+  });
+
+  quotes = Array.from(localMap.values());
+  saveQuotes();
+
+  if (updated) {
+    showMessage('Quotes synced from server.', 'success');
+    populateCategories();
+    filterQuotes(currentCategory);
   }
 }
 
@@ -391,4 +381,29 @@ async function addQuote() {
 
   newQuoteText.value = '';
   newQuoteCategory.value = '';
+}
+
+/**
+ * Fetches quotes from the server.
+ * Returns a Promise that resolves to an array of quotes.
+ */
+async function fetchQuotesFromServer() {
+  try {
+    const response = await fetch(SERVER_API_URL);
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+    const quotesFromServer = await response.json();
+
+    // Optional: validate each quote
+    return quotesFromServer.filter(q =>
+      q && typeof q.text === 'string' &&
+      typeof q.category === 'string' &&
+      typeof q.updatedAt === 'string'
+    );
+  } catch (error) {
+    console.error('Error fetching quotes from server:', error);
+    showMessage('Failed to fetch quotes from server.', 'error');
+    return [];
+  }
 }
