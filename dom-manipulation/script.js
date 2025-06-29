@@ -10,7 +10,7 @@ const newQuoteButton = document.getElementById('newQuote');
 const newQuoteText = document.getElementById('newQuoteText');
 const newQuoteCategory = document.getElementById('newQuoteCategory');
 const addQuoteButton = document.getElementById('addQuoteBtn');
-const categoryFilterContainer = document.getElementById('categoryFilter');
+const categoryFilterSelect = document.getElementById('categoryFilter'); // Changed to select element
 const messageBox = document.getElementById('messageBox');
 const exportQuotesButton = document.getElementById('exportQuotesBtn');
 
@@ -108,8 +108,9 @@ function addQuote() {
   showMessage("Quote added successfully!", "success");
 
   // Re-filter and re-render categories to include the new one if it's new
+  // Note: filterQuotes will also call showRandomQuote
   filterQuotes(currentCategory); // Re-apply current filter
-  populateCategories(); // Update category buttons
+  populateCategories(); // Update category dropdown
 }
 
 /**
@@ -127,52 +128,39 @@ function filterQuotes(category) {
     filteredQuotes = quotes.filter(quote => quote.category === category);
   }
 
-  // Update active button styling
-  document.querySelectorAll('.category-button').forEach(button => {
-    if (button.textContent === category) {
-      button.classList.add('active');
-    } else {
-      button.classList.remove('active');
-    }
-  });
+  // Set the selected value in the dropdown
+  categoryFilterSelect.value = currentCategory;
 
   showRandomQuote(); // Display a random quote from the newly filtered list
 }
 
 /**
- * Populates category buttons based on the unique categories in the quotes array.
- * Includes an "All" button. Renamed from renderCategoryButtons.
+ * Populates the category dropdown menu based on the unique categories in the quotes array.
+ * Includes an "All Categories" option.
  */
 function populateCategories() {
-  categoryFilterContainer.innerHTML = ''; // Clear existing buttons
+  categoryFilterSelect.innerHTML = ''; // Clear existing options
+
+  // Add "All Categories" option
+  const allOption = document.createElement('option');
+  allOption.value = "All";
+  allOption.textContent = "All Categories";
+  categoryFilterSelect.appendChild(allOption);
 
   // Get unique categories
   const categories = [...new Set(quotes.map(quote => quote.category))];
   categories.sort(); // Sort categories alphabetically
 
-  // Add "All" button
-  const allButton = document.createElement('button');
-  allButton.textContent = "All";
-  allButton.classList.add('category-button');
-  // Set active class if "All" is the current category
-  if (currentCategory === "All") {
-    allButton.classList.add('active');
-  }
-  allButton.addEventListener('click', () => filterQuotes("All"));
-  categoryFilterContainer.appendChild(allButton);
-
-  // Add buttons for each unique category
+  // Add options for each unique category
   categories.forEach(category => {
-    const button = document.createElement('button');
-    button.textContent = category;
-    button.classList.add('category-button');
-    // Set active class if this category is the current one
-    if (currentCategory === category) {
-      button.classList.add('active');
-    }
-    button.addEventListener('click', () => filterQuotes(category));
-    categoryFilterContainer.appendChild(button);
+    const option = document.createElement('option');
+    option.value = category;
+    option.textContent = category;
+    categoryFilterSelect.appendChild(option);
   });
+
+  // Set the selected option based on currentCategory
+  categoryFilterSelect.value = currentCategory;
 }
 
 /**
@@ -247,8 +235,8 @@ function importFromJsonFile(event) {
         saveQuotes(); // Save the combined quotes to local storage
         showMessage('Quotes imported successfully!', 'success');
         // Re-populate categories and show a random quote to reflect changes
-        filterQuotes(currentCategory);
-        populateCategories();
+        filterQuotes(currentCategory); // Apply current filter after import
+        populateCategories(); // Update category dropdown with new categories
       } else {
         showMessage('Invalid JSON format for quotes. Please ensure it\'s an array of objects with "text" and "category" properties.', 'error');
       }
@@ -290,15 +278,19 @@ function loadLastViewedQuote() {
 newQuoteButton.addEventListener('click', showRandomQuote);
 exportQuotesButton.addEventListener('click', exportQuotes); // Add event listener for export button
 
+// Event listener for category filter dropdown
+categoryFilterSelect.addEventListener('change', (event) => filterQuotes(event.target.value));
+
+
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
   loadQuotes(); // Load quotes and last selected category from local storage
-  populateCategories(); // Populate category buttons based on loaded quotes and active category
+  populateCategories(); // Populate category dropdown based on loaded quotes and active category
   const lastQuoteLoaded = loadLastViewedQuote(); // Try to load last viewed quote from session storage
   if (!lastQuoteLoaded) {
     // If no last viewed quote in session storage, display a random quote
     // filtered by the last selected category (which was loaded in loadQuotes)
-    showRandomQuote();
+    filterQuotes(currentCategory); // This will also call showRandomQuote
   }
   createAddQuoteForm(); // Set up the add quote form
 });
